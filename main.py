@@ -20,28 +20,28 @@ br.addheaders = [('User-agent', 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleW
 target = 'http://headline.2ch.net/bbynews/'
 
 def load():
-	res = br.open(target).read().decode('shiftjis','ignore')
-
-	soup = BeautifulSoup(res)
-
-	return [urwid.Text(title.text.encode('utf8','ignore'),wrap='clip') for title in soup.find_all('a')][9:]
+    res = br.open(target).read().decode('shiftjis','ignore')
+    soup = BeautifulSoup(res)
+    text_content = [urwid.Text(title.text.encode('utf8','ignore'),wrap='clip') for title in soup.find_all('a')][9:]
+    return urwid.SimpleListWalker([urwid.AttrMap(w, None, 'reveal focus') for w in text_content])
 
 #the frame widget
 
+def get_rows():
+    return urwid.raw_display.Screen().get_cols_rows()[1]
+
 def hot_keys(key):
-	if key in ('q', 'Q'):
-		raise urwid.ExitMainLoop()
-	if key in ('r', 'R'):
-		news_titles = load()
-		loop.draw_screen()
-			
+    if key in ('q', 'Q'):
+	raise urwid.ExitMainLoop()
+    if key in ('r', 'R'):
+        news_titles[:] = load() 
 
 news_titles = load()
 Header = urwid.Filler(urwid.Text(u'Welcome to BBS Reader, %s threads' % str(len(news_titles))),'top')
 
-Body = urwid.Pile(news_titles)
+Body = urwid.ListBox(news_titles)
 
-Frame = urwid.Frame(Header,Body)
+Frame = urwid.Frame(Header, urwid.BoxAdapter(Body,get_rows()))
 
 loop = urwid.MainLoop(Frame,unhandled_input=hot_keys)
 
