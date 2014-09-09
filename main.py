@@ -25,6 +25,10 @@ def load():
     text_content = [urwid.Text(title.text.encode('utf8','ignore'),wrap='clip') for title in soup.find_all('a')][9:]
     return urwid.SimpleListWalker([urwid.AttrMap(w, None, 'reveal focus') for w in text_content])
 
+def auto_refresh(loop=None, data=None):
+    news_titles[:] = load()
+    loop.set_alarm_in(120,auto_refresh)
+
 #the frame widget
 
 def get_rows():
@@ -37,6 +41,7 @@ def hot_keys(key):
         news_titles[:] = load() 
 
 news_titles = load()
+
 Header = urwid.Filler(urwid.Text(u'Welcome to BBS Reader, %s threads' % str(len(news_titles))),'top')
 
 Body = urwid.ListBox(news_titles)
@@ -44,6 +49,8 @@ Body = urwid.ListBox(news_titles)
 Frame = urwid.Frame(Header, urwid.BoxAdapter(Body,get_rows()))
 
 loop = urwid.MainLoop(Frame,unhandled_input=hot_keys)
+
+loop.set_alarm_in(120,auto_refresh)
 
 loop.run()
 
